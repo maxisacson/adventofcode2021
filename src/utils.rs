@@ -8,6 +8,13 @@ where P: AsRef<Path>, {
     Ok(io::BufReader::new(file).lines())
 }
 
+pub fn read_lines_to_vec<P>(filename: P) -> Vec<String>
+where P: AsRef<Path> {
+    io::BufReader::new(File::open(filename)
+                    .expect("Could not read file"))
+                    .lines().map(|line| line.unwrap()).collect()
+}
+
 pub fn day(day: i32) {
     println!("++++++++++ Day {} ++++++++++", day);
 }
