@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
@@ -30,4 +32,17 @@ pub fn close() {
 pub fn answer<T>(answer: T)
 where T: std::fmt::Display, {
     println!("Answer: {}", answer);
+}
+
+pub fn min_max<T>(slice: &[T]) -> (T, T)
+where T: std::cmp::PartialOrd+Copy {
+    let mut max = slice[0];
+    let mut min = slice[0];
+
+    for &x in slice {
+        max = if x > max { x } else { max };
+        min = if x < min { x} else { min };
+    }
+
+    (min, max)
 }
