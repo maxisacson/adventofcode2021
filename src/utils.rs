@@ -46,3 +46,9 @@ where T: std::cmp::PartialOrd+Copy {
 
     (min, max)
 }
+
+pub fn sort_chars(string: &str) -> String {
+    let mut chars: Vec<char> = string.chars().collect();
+    chars.sort_by(|a, b| a.cmp(b));
+    String::from_iter(chars)
+}
