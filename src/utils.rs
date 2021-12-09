@@ -22,7 +22,7 @@ pub fn day(day: i32) {
 }
 
 pub fn part(part: i32) {
-    println!("--- Part {} ---", part);
+    println!("  --- Part {} ---", part);
 }
 
 pub fn close() {
@@ -31,7 +31,7 @@ pub fn close() {
 
 pub fn answer<T>(answer: T)
 where T: std::fmt::Display, {
-    println!("Answer: {}", answer);
+    println!("  Answer: {}", answer);
 }
 
 pub fn min_max<T>(slice: &[T]) -> (T, T)
