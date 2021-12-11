@@ -17,6 +17,14 @@ where P: AsRef<Path> {
                     .lines().map(|line| line.unwrap()).collect()
 }
 
+pub fn read_lines_to_ints<P>(filename: P) -> Vec<Vec<i32>>
+where P: AsRef<Path> {
+    io::BufReader::new(File::open(filename)
+                    .expect("Could not read file"))
+                    .lines().map(|line| line.unwrap().chars()
+                         .map(|c| c.to_digit(10).unwrap() as i32).collect()).collect()
+}
+
 pub fn day(day: i32) {
     println!("++++++++++ Day {} ++++++++++", day);
 }
