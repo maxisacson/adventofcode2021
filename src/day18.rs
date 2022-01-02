@@ -22,7 +22,7 @@ fn part1() {
         reduce_number(&mut sum);
         println!("= {}", sum);
         println!();
-        break;
+        // break;
     }
 
 
@@ -82,10 +82,41 @@ fn add_numbers(s1: &str, s2: &str) -> String {
 }
 
 fn reduce_number(number: &mut String) {
-    let mut reducible = true;
-    let mut split = true;
-    while reducible {
-        let
+    loop {
+        if let Some(n) = find_explodable_number(number) {
+            // let i = n.first;
+            // let j = n.second;
+            // let mut s = vec![' '; i];
+            // s.push('f');
+            // s.append(&mut vec![' '; j-i-1]);
+            // s.push('s');
+            //
+            // if let Some(left) = n.left {
+            //     s[left] = 'l';
+            // }
+            //
+            // if let Some(right) = n.right {
+            //     s.append(&mut vec![' '; right-j-1]);
+            //     s.push('r');
+            // }
+
+            // println!("{}", number);
+            // println!("{}", String::from_iter(s));
+            explode_number(number, n);
+
+            continue;
+        }
+
+        if let Some(i) = find_splitable_number(number) {
+            // let mut s = vec![' '; i];
+            // s.push('^');
+            // println!("{}", number);
+            // println!("{}", String::from_iter(s));
+            split_number(number, i);
+
+            continue;
+        }
+
         // let expl = explode_number(number);
         // if expl {
         //     println!("exploded: {}", number);
@@ -100,12 +131,14 @@ fn reduce_number(number: &mut String) {
     }
 }
 
-fn find_explodable_number(s: &str) -> Option<Pair<usize, usize>> {
-
-    return None;
+struct Explodable {
+    first: usize,
+    second: usize,
+    left: Option<usize>,
+    right: Option<usize>,
 }
 
-fn explode_number(s: &mut String) -> bool {
+fn find_explodable_number(s: &str) -> Option<Explodable> {
     let mut i = 0;
     let mut j;
     let mut k;
@@ -114,10 +147,9 @@ fn explode_number(s: &mut String) -> bool {
     let mut right: Option<usize> = None;
 
     let mut chars: Vec<char> = s.chars().collect();
-    // while nesting <= 4 {
-    loop {
+    while nesting <= 4 {
         if i >= chars.len()-3 {
-            return false;
+            return None;
         }
 
         if chars[i].is_digit(10) {
@@ -128,41 +160,29 @@ fn explode_number(s: &mut String) -> bool {
         nesting -= (chars[i] == ']') as u32;
 
         i += 1;
-
-        if nesting > 4 && chars[i].is_digit(10) {// && chars[i+2].is_digit(10) {
-            j = i+1;
-            while chars[j] != ',' {
-                j += 1;
-            }
-
-            k = i+1;
-            while chars[k] != ']' {
-                k += 1;
-            }
-
-            if let Err(_) = s[i..j].parse::<u32>() {
-                continue;
-            }
-
-            if let Err(_) = s[j+1..k].parse::<u32>() {
-                continue;
-            }
-            // println!("{}", s[i..j].to_string());
-            // println!("{}", s[j+1..k].to_string());
-            //
-            // exit(1);
-            break;
-        }
     }
 
-    // let mut j = i+1;
-    // while chars[j] != ',' {
-    //     j += 1;
-    // }
+    j = i+1;
+    while chars[j] != ',' {
+        j += 1;
+    }
 
-    // let mut k = i+1;
-    // while chars[k] != ']' {
-    //     k += 1;
+    k = j+1;
+    while chars[k] != ']' {
+        k += 1;
+    }
+
+    // if let Err(_) = s[i..j].parse::<u32>() {
+    //     continue;
+    // }
+    //
+    // if let Err(_) = s[j+1..k].parse::<u32>() {
+    //     continue;
+    // }
+    // println!("{}", s[i..j].to_string());
+    // println!("{}", s[j+1..k].to_string());
+    //
+    // exit(1);
     // }
 
     for l in k+1..chars.len() {
@@ -172,44 +192,164 @@ fn explode_number(s: &mut String) -> bool {
         }
     }
 
-    // println!("{}", s);
-    // println!("({},{}): {}", i, k, s[i..k].to_string());
-    let a: u32 = s[i..k].split(',').next().unwrap().parse().unwrap();
-    let b: u32 = s[i..k].split(',').skip(1).next().unwrap().parse().unwrap();
-
-    if let Some(left) = left {
-        let x = a + chars[left].to_digit(10).unwrap();
-        *s = format!("{}{}{}", s[0..left].to_string(), x, s[left+1..].to_string());
-        if x >= 10 {
-            if let Some(r) = right {
-                right = Some(r+1);
-            }
-            i += 1;
-            // j += 1;
-            k += 1;
-            chars = s.chars().collect();
-        }
-    }
-    // println!("s={}", s);
-
-    if let Some(right) = right {
-        // println!("right={}", right);
-        let x = b + chars[right].to_digit(10).unwrap();
-        *s = format!("{}{}{}", s[0..right].to_string(), x, s[right+1..].to_string());
-    }
-    *s = format!("{}0{}", s[0..i-1].to_string(), s[k+1..].to_string());
-
-    return true;
+    return Some(Explodable{first: i, second: j+1, left, right});
 }
 
-fn split_number(s: &mut String) -> bool {
+fn explode_number(s: &mut String, n: Explodable) {
+    let mut i = n.first;
+    let j = n.second;
+    let mut k = j + 1;
+
+    let len0 = s.len();
+
+    let chars: Vec<char> = s.chars().collect();
+    while chars[k] != ']' {
+        k += 1;
+    }
+
+    let a: u32 = s[i..j-1].parse().unwrap();
+    let b: u32 = s[j..k].parse().unwrap();
+
+    if let Some(l) = n.left {
+        let mut m = l + 1;
+        while chars[m].is_digit(10) {
+            m += 1;
+        }
+        let mut left: u32 = s[l..m].parse().unwrap();
+        left += a;
+
+        *s = format!("{}{}{}", s[0..l].to_string(), left, s[m..].to_string());
+    }
+
+    let diff = s.len() - len0;
+    i += diff;
+    // j += diff;
+    k += diff;
+
+    if let Some(mut r) = n.right {
+        let mut m = r + 1;
+        while chars[m].is_digit(10) {
+            m += 1;
+        }
+        r += diff;
+        m += diff;
+        // println!("{}:{} {}", r, m, s[r..m].to_string());
+        let mut right: u32 = s[r..m].parse().unwrap();
+        right += b;
+
+        *s = format!("{}{}{}", s[0..r].to_string(), right, s[m..].to_string());
+    }
+
+    *s = format!("{}0{}", s[0..i-1].to_string(), s[k+1..].to_string());
+
+    // println!("{}", s);
+}
+
+// fn explode_number(s: &mut String) -> bool {
+//     let mut i = 0;
+//     let mut j;
+//     let mut k;
+//     let mut nesting = 0;
+//     let mut left: Option<usize> = None;
+//     let mut right: Option<usize> = None;
+//
+//     let mut chars: Vec<char> = s.chars().collect();
+//     // while nesting <= 4 {
+//     loop {
+//         if i >= chars.len()-3 {
+//             return false;
+//         }
+//
+//         if chars[i].is_digit(10) {
+//             left = Some(i);
+//         }
+//
+//         nesting += (chars[i] == '[') as u32;
+//         nesting -= (chars[i] == ']') as u32;
+//
+//         i += 1;
+//
+//         if nesting > 4 && chars[i].is_digit(10) {// && chars[i+2].is_digit(10) {
+//             j = i+1;
+//             while chars[j] != ',' {
+//                 j += 1;
+//             }
+//
+//             k = i+1;
+//             while chars[k] != ']' {
+//                 k += 1;
+//             }
+//
+//             if let Err(_) = s[i..j].parse::<u32>() {
+//                 continue;
+//             }
+//
+//             if let Err(_) = s[j+1..k].parse::<u32>() {
+//                 continue;
+//             }
+//             // println!("{}", s[i..j].to_string());
+//             // println!("{}", s[j+1..k].to_string());
+//             //
+//             // exit(1);
+//             break;
+//         }
+//     }
+//
+//     // let mut j = i+1;
+//     // while chars[j] != ',' {
+//     //     j += 1;
+//     // }
+//
+//     // let mut k = i+1;
+//     // while chars[k] != ']' {
+//     //     k += 1;
+//     // }
+//
+//     for l in k+1..chars.len() {
+//         if chars[l].is_digit(10) {
+//             right = Some(l);
+//             break;
+//         }
+//     }
+//
+//     // println!("{}", s);
+//     // println!("({},{}): {}", i, k, s[i..k].to_string());
+//     let a: u32 = s[i..k].split(',').next().unwrap().parse().unwrap();
+//     let b: u32 = s[i..k].split(',').skip(1).next().unwrap().parse().unwrap();
+//
+//     if let Some(left) = left {
+//         let x = a + chars[left].to_digit(10).unwrap();
+//         *s = format!("{}{}{}", s[0..left].to_string(), x, s[left+1..].to_string());
+//         if x >= 10 {
+//             if let Some(r) = right {
+//                 right = Some(r+1);
+//             }
+//             i += 1;
+//             // j += 1;
+//             k += 1;
+//             chars = s.chars().collect();
+//         }
+//     }
+//     // println!("s={}", s);
+//
+//     if let Some(right) = right {
+//         // println!("right={}", right);
+//         let x = b + chars[right].to_digit(10).unwrap();
+//         *s = format!("{}{}{}", s[0..right].to_string(), x, s[right+1..].to_string());
+//     }
+//     *s = format!("{}0{}", s[0..i-1].to_string(), s[k+1..].to_string());
+//
+//     return true;
+// }
+
+fn find_splitable_number(s: &str) -> Option<usize> {
     let mut i = 0;
     let mut j;
 
     let chars: Vec<char> = s.chars().collect();
     loop {
         if i >= chars.len()-1 {
-            return false;
+            return None;
         };
 
         if !chars[i].is_digit(10) {
@@ -217,26 +357,68 @@ fn split_number(s: &mut String) -> bool {
             continue;
         }
 
-        j = i;
+        j = i + 1;
         while chars[j].is_digit(10) {
             j += 1;
         }
 
         if j > i + 1 {
-            break;
+            return Some(i);
         }
 
-        i = j;
+        i = j + 1;
     }
-    // println!("{}, {}  ({})", i, j, chars.len());
+}
+
+fn split_number(s: &mut String, i: usize) {
+    let mut j = i + 1;
+
+    let chars: Vec<char> = s.chars().collect();
+    while chars[j].is_digit(10) {
+        j += 1;
+    }
 
     let x: u32 = s[i..j].parse().unwrap();
     let left = x / 2;
     let right = (x+1) / 2;
     *s = format!("{}[{},{}]{}", s[0..i].to_string(), left, right, s[j..].to_string());
-
-    return true;
 }
+
+// fn split_number(s: &mut String) -> bool {
+//     let mut i = 0;
+//     let mut j;
+//
+//     let chars: Vec<char> = s.chars().collect();
+//     loop {
+//         if i >= chars.len()-1 {
+//             return false;
+//         };
+//
+//         if !chars[i].is_digit(10) {
+//             i += 1;
+//             continue;
+//         }
+//
+//         j = i;
+//         while chars[j].is_digit(10) {
+//             j += 1;
+//         }
+//
+//         if j > i + 1 {
+//             break;
+//         }
+//
+//         i = j;
+//     }
+//     // println!("{}, {}  ({})", i, j, chars.len());
+//
+//     let x: u32 = s[i..j].parse().unwrap();
+//     let left = x / 2;
+//     let right = (x+1) / 2;
+//     *s = format!("{}[{},{}]{}", s[0..i].to_string(), left, right, s[j..].to_string());
+//
+//     return true;
+// }
 
 // fn part2() {
 //     part(2);
